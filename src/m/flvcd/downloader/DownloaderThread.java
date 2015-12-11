@@ -1,10 +1,12 @@
 package m.flvcd.downloader;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.InputStream;
 import java.io.RandomAccessFile;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.security.MessageDigest;
 import java.util.List;
 
 public class DownloaderThread extends Thread {
@@ -66,14 +68,14 @@ public class DownloaderThread extends Thread {
 			}
 			
 			if (url != null) {
-				String fileName = System.currentTimeMillis() + ".ts";
+				String fileName = MD5(url) + ".ts";
 				int curRetryLeft = retryCount >= 0 ? (retryCount + 1) : Integer.MAX_VALUE;
 				boolean comp = false;
 				while (curRetryLeft > 0) {
 					try {
 						download(url, fileName);
 						if (onDownloadProgressListener != null) {
-							onDownloadProgressListener.onDownload(fileName, url);
+							onDownloadProgressListener.onDownload(fileName, url, -1);
 						}
 						comp = true;
 						System.out.println("retry count: " + (retryCount - curRetryLeft + 1));
@@ -132,6 +134,37 @@ public class DownloaderThread extends Thread {
 		is.close();
 		raf.close();
 		conn.disconnect();
+	}
+	
+	private String MD5(String data) {
+		if (data == null) {
+			return null;
+		}
+		
+		byte[] tmp = null;
+		try {
+			ByteArrayInputStream bais = new ByteArrayInputStream(data.getBytes("utf-8"));
+			byte[] buf = new byte[1024];
+			MessageDigest md = MessageDigest.getInstance("MD5");
+			int len = bais.read(buf);
+			while (len != -1) {
+				md.update(buf, 0, len);
+				len = bais.read(buf);
+			}
+			tmp = md.digest();
+			bais.close();
+		} catch (Throwable e) {
+			tmp = null;
+		}
+		
+		if (tmp != null) {
+			StringBuffer buffer = new StringBuffer();
+			for (int i = 0; i < tmp.length; i++){
+	            buffer.append(String.format("%02x", tmp[i]));
+	        }
+			return buffer.toString();
+		}
+        return null;
 	}
 	
 }

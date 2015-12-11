@@ -55,9 +55,10 @@ public class DownloadService extends Service implements Callback, OnDownloadProg
 		}.start();
 	}
 
-	public void onDownload(final String file, String url) {
+	public void onDownload(final String file, String url, int progress) {
 		Message msg = new Message();
 		msg.what = MSG_DOWNLOAD;
+		msg.arg1 = progress;
 		msg.obj = file;
 		handler.sendMessage(msg);
 	}
@@ -71,7 +72,7 @@ public class DownloadService extends Service implements Callback, OnDownloadProg
 				Toast.makeText(this, "finished!", Toast.LENGTH_SHORT).show();
 			} break;
 			case MSG_DOWNLOAD: {
-				Toast.makeText(this, String.valueOf(msg.obj) + " done!", Toast.LENGTH_SHORT).show();
+				Toast.makeText(this, msg.obj + " (" + msg.arg1 + "%)", Toast.LENGTH_SHORT).show();
 			} break;
 		}
 		return false;

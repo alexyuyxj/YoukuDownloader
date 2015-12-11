@@ -68,6 +68,7 @@ public class FileListDownloader {
 		ArrayList<String> list = new ArrayList<String>();
 		list.addAll(Arrays.asList(fileList));
 		final Object lock = new Object();
+		final int fileCount = list.size();
 		workingThreadCount = downloadThreadCount;
 		OnDownloadFinishListener listener = new OnDownloadFinishListener() {
 			public void onFinish() {
@@ -94,12 +95,12 @@ public class FileListDownloader {
 				thread.setConnectionTimeout(connectionTimeout);
 				thread.setReadTimeout(readTimeout);
 				thread.setOnDownloadProgressListener(new OnDownloadProgressListener() {
-					public void onDownload(String file, String url) {
+					public void onDownload(String file, String url, int progress) {
 						synchronized (resMap) {
 							resMap.put(url, "list/" + file);
 						}
 						if (onDownloadProgressListener != null) {
-							onDownloadProgressListener.onDownload(file, url);
+							onDownloadProgressListener.onDownload(file, url, 100 * resMap.size() / fileCount);
 						}
 					}
 				});
