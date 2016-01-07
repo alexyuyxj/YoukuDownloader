@@ -37,17 +37,17 @@ public class MainActivity extends Activity implements OnClickListener {
 		setting.setSupportZoom(true);
 		setting.setBuiltInZoomControls(true);
 		setting.setDisplayZoomControls(false);
-		setting.setCacheMode(WebSettings.LOAD_CACHE_ELSE_NETWORK);
+//		setting.setCacheMode(WebSettings.LOAD_CACHE_ELSE_NETWORK);
 		setting.setDomStorageEnabled(true);
 		setting.setDatabaseEnabled(true);
-		setting.setAppCacheEnabled(true);
+//		setting.setAppCacheEnabled(true);
 		wvBody.setWebViewClient(new WebViewClient() {
 			public boolean shouldOverrideUrlLoading(WebView view, String url) {
 				view.loadUrl(url);
 				return true;
 			}
 		});
-		wvBody.loadUrl("http://www.youku.com");
+		wvBody.loadUrl("file:///android_asset/index.htm");
 	}
 	
 	@SuppressWarnings("deprecation")

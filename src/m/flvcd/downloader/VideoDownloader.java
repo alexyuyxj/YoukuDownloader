@@ -10,7 +10,10 @@ import java.net.URL;
 import java.net.URLEncoder;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
+
+import org.json.JSONObject;
 
 import android.util.Base64;
 
@@ -38,10 +41,31 @@ public class VideoDownloader {
 			String parseRes = parsePage(pageUrl);
 			String xml = decryptResult(parseRes);
 			String[] mediaInfo = parseXml(xml);
-			String m3u8 = downloadM3u8(mediaInfo[1]);
-			String[] videoList = parseMeu8(m3u8);
-			HashMap<String, String> localVideos = downloadVideos(title, videoList, mediaInfo[0], listener);
-			return genM3u8(m3u8, localVideos, mediaInfo[0]);
+			URL m3u8Url = new URL(mediaInfo[1]);
+			String host = m3u8Url.getProtocol() + "://" + m3u8Url.getHost();
+			
+			if (host.contains("youku") || host.contains("tudou")) {
+				String m3u8 = downloadText(mediaInfo[1]);
+				String[] videoList = parseMeu8(m3u8);
+				HashMap<String, String> localVideos = downloadVideos(title, videoList, mediaInfo[0], listener);
+				return genM3u8(m3u8, localVideos, mediaInfo[0]);
+			} else if (host.contains("cntv")) {
+				String mainM3u8 = downloadText(mediaInfo[1]);
+				String m3u8 = downloadCNTVM3u8(host, mainM3u8);
+				String[] videoList = parseMeu8(m3u8);
+				HashMap<String, String> localVideos = downloadVideos(title, videoList, mediaInfo[0], listener);
+				return genM3u8(m3u8, localVideos, mediaInfo[0]);
+			} else if (host.contains("iask")) {
+				String[] videoList = new String[] {mediaInfo[1]};
+				downloadVideos(title, videoList, mediaInfo[0], listener);
+				return (new File("/sdcard/FLVCD/", mediaInfo[0])).getAbsolutePath();
+			} else if (host.contains("letv")) {
+				String jsonStr = downloadText(mediaInfo[1]);
+				JSONObject json = new JSONObject(jsonStr);
+				String[] videoList = new String[] {json.optString("location")};
+				downloadVideos(title, videoList, mediaInfo[0], listener);
+				return (new File("/sdcard/FLVCD/", mediaInfo[0])).getAbsolutePath();
+			}
 		} catch (Throwable t) {
 			t.printStackTrace();
 		}
@@ -117,7 +141,7 @@ public class VideoDownloader {
 		return resp;
 	}
 	
-	private static String downloadM3u8(String url) throws Throwable {
+	private static String downloadText(String url) throws Throwable {
 		String resp = null;
 		if (url != null) {
 			HttpURLConnection conn = (HttpURLConnection) new URL(url).openConnection();
@@ -138,6 +162,70 @@ public class VideoDownloader {
 			}
 			conn.disconnect();
 		}
+		return resp;
+	}
+	
+	private static String downloadCNTVM3u8(String host, String m3u8) {
+		String[] lines = m3u8.split("\n");
+		ArrayList<Integer> list = new ArrayList<Integer>();
+		HashMap<Integer, Integer> map = new HashMap<Integer, Integer>();
+		for (int i = 0; i < lines.length; i++) {
+			if (lines[i].startsWith("#EXT-X-STREAM-INF") && lines[i].contains("RESOLUTION=")) {
+				int ind = lines[i].indexOf("RESOLUTION=") + "RESOLUTION=".length();
+				String resolution = lines[i].substring(ind);
+				String[] ps = resolution.split("x");
+				try {
+					int iResolution = Integer.parseInt(ps[0]) * Integer.parseInt(ps[1]);
+					list.add(iResolution);
+					map.put(iResolution, i);
+				} catch (Throwable t) {}
+			}
+		}
+		Collections.sort(list);
+		int maxRes = list.get(list.size() - 1);
+		int index = map.get(maxRes) + 1;
+		String m3u8Url = host + lines[index];
+		
+		String resp = null;
+		try {
+			HttpURLConnection conn = (HttpURLConnection) new URL(m3u8Url).openConnection();
+			conn.connect();
+			if (conn.getResponseCode() == HttpURLConnection.HTTP_OK) {
+				InputStream is = conn.getInputStream();
+				ByteArrayOutputStream baos = new ByteArrayOutputStream();
+				byte[] buf = new byte[1024];
+				int len = is.read(buf);
+				while (len > 0) {
+					baos.write(buf, 0, len);
+					len = is.read(buf);
+				}
+				baos.close();
+				is.close();
+				conn.disconnect();
+				resp = new String(baos.toByteArray(), "UTF-8");
+			}
+		} catch (Throwable t) {
+			t.printStackTrace();
+			resp = null;
+		}
+
+		if (resp != null) {
+			lines = resp.split("\n");
+			int ind = m3u8Url.lastIndexOf("/") + 1;
+			String pref = m3u8Url.substring(0, ind);
+			StringBuilder sb = new StringBuilder();
+			for (String line : lines) {
+				sb.append('\n');
+				if (!line.startsWith("#")) {
+					sb.append(pref);
+				}
+				sb.append(line);
+			}
+			sb.deleteCharAt(0);
+			resp = sb.toString();
+			System.out.println(resp);
+		}
+	
 		return resp;
 	}
 	
