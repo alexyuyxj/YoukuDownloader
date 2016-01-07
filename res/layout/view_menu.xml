@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:layout_alignParentBottom="true"
+    android:layout_alignParentLeft="true"
+    android:layout_alignParentRight="true"
+    android:layout_below="@id/vTitle"
+    android:orientation="vertical" >
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="right"
+        android:layout_margin="5dp"
+        android:background="#af000000"
+        android:orientation="vertical" >
+
+        <TextView
+            android:id="@+id/tvParse"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:background="@drawable/title_button_back"
+            android:gravity="center"
+            android:paddingLeft="15dp"
+            android:paddingRight="15dp"
+            android:text="Parse"
+            android:textColor="#ffffffff"
+            android:textSize="24sp" />
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1px"
+            android:background="#afffffff" />
+
+        <TextView
+            android:id="@+id/tvParseUrl"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:background="@drawable/title_button_back"
+            android:gravity="center"
+            android:paddingLeft="15dp"
+            android:paddingRight="15dp"
+            android:text="Parse URL"
+            android:textColor="#ffffffff"
+            android:textSize="24sp" />
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1px"
+            android:background="#afffffff" />
+
+        <TextView
+            android:id="@+id/tvSwitchUA"
+            android:layout_width="wrap_content"
+            android:layout_height="48dp"
+            android:background="@drawable/title_button_back"
+            android:gravity="center"
+            android:paddingLeft="15dp"
+            android:paddingRight="15dp"
+            android:text="Use PC UA"
+            android:textColor="#ffffffff"
+            android:textSize="24sp" />
+    </LinearLayout>
+
+</LinearLayout>
